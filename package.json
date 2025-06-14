@@ -15,12 +15,15 @@
         "panel"
     ],
     "dependencies": {
+        "@google/generative-ai": "^0.24.1",
         "@swc-react/button": "1.0.3",
         "@swc-react/tabs": "^1.6.0",
         "@swc-react/theme": "1.0.3",
         "@types/katex": "^0.16.7",
+        "dotenv": "^16.5.0",
         "html2canvas": "^1.4.1",
         "katex": "^0.16.22",
+        "lucide-react": "^0.515.0",
         "react": "18.2.0",
         "react-dom": "18.2.0"
     },
