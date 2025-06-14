@@ -1,35 +1,90 @@
-// To support: system="express" scale="medium" color="light"
-// import these spectrum web components modules:
 import "@spectrum-web-components/theme/express/scale-medium.js";
 import "@spectrum-web-components/theme/express/theme-light.js";
-
-// To learn more about using "swc-react" visit:
-// https://opensource.adobe.com/spectrum-web-components/using-swc-react/
-import { Button } from "@swc-react/button";
 import { Theme } from "@swc-react/theme";
 import React, { useState } from "react";
 import "./App.css";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 
-const App = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
-    const [buttonLabel, setButtonLabel] = useState("Click me");
+import ImageTab from "./ImageTab";
+import GenerateTab from "./GenerateTab";
+import ExportTab from "./ExportTab";
+import WriteTab from "./WriteTab";
 
-    function handleClick() {
-        setButtonLabel("Clicked");
+const tabLabels = ["Image", "Generate", "Export", "Write"];
+
+const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
+  const [selectedTab, setSelectedTab] = useState(0);
+
+  const handleTabClick = (index: number) => {
+    setSelectedTab(index);
+  };
+
+  const renderTabContent = () => {
+    switch (selectedTab) {
+      case 0:
+        return <ImageTab addOnUISdk={addOnUISdk} />;
+      case 1:
+        return <GenerateTab />;
+      case 2:
+        return <ExportTab />;
+      case 3:
+        return <WriteTab />;
+      default:
+        return <ImageTab addOnUISdk={addOnUISdk} />;
     }
+  };
 
-    return (
-        // Please note that the below "<Theme>" component does not react to theme changes in Express.
-        // You may use "addOnUISdk.app.ui.theme" to get the current theme and react accordingly.
-        <Theme system="express" scale="medium" color="light">
-            <div className="container">
-                <Button size="m" onClick={handleClick}>
-                    {buttonLabel}
-                </Button>
-            </div>
-        </Theme>
-    );
+  return (
+    <Theme system="express" scale="medium" color="light">
+      <div
+        className="container"
+        style={{ minWidth: 280, maxWidth: 320, padding: 12 }}
+      >
+        <div style={{ marginBottom: 8 }}>
+          <span style={{ fontWeight: 500, fontSize: 13 }}>Input type</span>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            marginBottom: 12,
+            overflow: "hidden",
+            width: "100%",
+          }}
+        >
+          {tabLabels.map((label, idx) => (
+            <button
+              key={label}
+              onClick={() => handleTabClick(idx)}
+              style={{
+                flex: 1,
+                padding: "6px 2px",
+                border: "none",
+                background: selectedTab === idx ? "#e6e6fa" : "white",
+                color: selectedTab === idx ? "#6b46c1" : "#666",
+                fontWeight: selectedTab === idx ? 600 : 400,
+                cursor: "pointer",
+                fontSize: 10,
+                transition: "all 0.2s ease",
+                minWidth: 0,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {renderTabContent()}
+      </div>
+    </Theme>
+  );
+};
+
+const App = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
+  return <MathDraw addOnUISdk={addOnUISdk} />;
 };
 
 export default App;
