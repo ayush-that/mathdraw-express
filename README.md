@@ -1,2 +1,16 @@
-# mathdraw-express
-mathdraw allows you to generate well-formatted svg equations directly add them to your designs or documents. you can choose to upload an image or handwrite the equation for recognition.
+## About
+
+This project has been created with _@adobe/create-ccweb-add-on_. As an example, this Add-on demonstrates how to get started with Add-on development using React and TypeScript.
+
+## Tools
+
+-   HTML
+-   CSS
+-   React
+-   TypeScript
+
+## Setup
+
+1. To install the dependencies, run `npm install`.
+2. To build the application, run `npm run build`.
+3. To start the application, run `npm run start`.

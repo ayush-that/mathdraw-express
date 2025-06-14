@@ -1,0 +1,21 @@
+{
+    "testId": "aa5ec6dc-1620-4433-bda7-8ec66ee545af",
+    "name": "Mathdraw",
+    "version": "1.0.0",
+    "manifestVersion": 2,
+    "requirements": {
+        "apps": [
+            {
+                "name": "Express",
+                "apiVersion": 1
+            }
+        ]
+    },
+    "entryPoints": [
+        {
+            "type": "panel",
+            "id": "panel1",
+            "main": "index.html"
+        }
+    ]
+}
