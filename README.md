@@ -4,8 +4,7 @@ This project has been created with _@adobe/create-ccweb-add-on_. As an example, 
 
 ## Tools
 
-- HTML
-- CSS
+- HTML/CSS
 - React
 - TypeScript
 
