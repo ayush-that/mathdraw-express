@@ -1,8 +1,38 @@
 import "@spectrum-web-components/theme/express/scale-medium.js";
 import "@spectrum-web-components/theme/express/theme-light.js";
 import { Theme } from "@swc-react/theme";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
+import "@spectrum-web-components/tabs/sp-tabs.js";
+import "@spectrum-web-components/tabs/sp-tab.js";
+import "@spectrum-web-components/tabs/sp-tab-panel.js";
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "sp-tabs": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        selected?: string;
+        ref?: React.Ref<any>;
+      };
+      "sp-tab": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        value?: string;
+        label?: string;
+      };
+      "sp-tab-panel": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        value?: string;
+      };
+    }
+  }
+}
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 
@@ -10,22 +40,33 @@ import ImageTab from "./ImageTab";
 import GenerateTab from "./GenerateTab";
 import WriteTab from "./WriteTab";
 
-const tabLabels = ["Image", "Generate", "Write"];
-
 const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState("image");
+  const tabsRef = useRef<any>(null);
 
-  const handleTabClick = (index: number) => {
-    setSelectedTab(index);
-  };
+  useEffect(() => {
+    const handleTabChange = (event: any) => {
+      setSelectedTab(event.target.selected);
+    };
+
+    if (tabsRef.current) {
+      tabsRef.current.addEventListener("change", handleTabChange);
+    }
+
+    return () => {
+      if (tabsRef.current) {
+        tabsRef.current.removeEventListener("change", handleTabChange);
+      }
+    };
+  }, []);
 
   const renderTabContent = () => {
     switch (selectedTab) {
-      case 0:
+      case "image":
         return <ImageTab addOnUISdk={addOnUISdk} />;
-      case 1:
+      case "generate":
         return <GenerateTab addOnUISdk={addOnUISdk} />;
-      case 2:
+      case "write":
         return <WriteTab addOnUISdk={addOnUISdk} />;
       default:
         return <ImageTab addOnUISdk={addOnUISdk} />;
@@ -38,37 +79,21 @@ const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
         className="container"
         style={{ minWidth: 280, maxWidth: 320, padding: 12 }}
       >
-        <div
-          style={{
-            display: "flex",
-            borderRadius: 6,
-            border: "1px solid #ccc",
-            marginBottom: 14,
-            overflow: "hidden",
-            width: "100%",
-          }}
+        <sp-tabs
+          ref={tabsRef}
+          selected={selectedTab}
+          style={{ marginBottom: "14px" }}
         >
-          {tabLabels.map((label, idx) => (
-            <button
-              key={label}
-              onClick={() => handleTabClick(idx)}
-              style={{
-                flex: 1,
-                padding: "6px 2px",
-                border: "none",
-                background: selectedTab === idx ? "#e6e6fa" : "white",
-                color: selectedTab === idx ? "#6b46c1" : "#666",
-                fontWeight: selectedTab === idx ? 600 : 400,
-                cursor: "pointer",
-                fontSize: 14,
-                transition: "all 0.2s ease",
-                minWidth: 0,
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+          <sp-tab value="image" label="Image">
+            Image
+          </sp-tab>
+          <sp-tab value="generate" label="Generate">
+            Generate
+          </sp-tab>
+          <sp-tab value="write" label="Write">
+            Write
+          </sp-tab>
+        </sp-tabs>
 
         {renderTabContent()}
       </div>

@@ -4,6 +4,31 @@ import { Upload, Lightbulb, X } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MATH_RECOGNITION_PROMPT } from "../prompts";
 import LaTeXEditor from "./LaTeXEditor";
+import "@spectrum-web-components/dropzone/sp-dropzone.js";
+import "@spectrum-web-components/button/sp-button.js";
+
+// Declare the custom element for TypeScript
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "sp-dropzone": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        accept?: string;
+      };
+      "sp-button": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        variant?: string;
+        size?: string;
+        disabled?: boolean;
+        onClick?: (event: any) => void;
+      };
+    }
+  }
+}
 
 interface ImageTabProps {
   addOnUISdk?: AddOnSDKAPI;
@@ -15,34 +40,6 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 1024 * 1024) {
-      setError("File size must be less than 1MB");
-      return;
-    }
-
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-    if (!allowedTypes.includes(file.type)) {
-      setError("Only JPEG, JPG, and PNG files are allowed");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setUploadedImage(result);
-      setError("");
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleChooseFile = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleRecognize = async () => {
     if (!uploadedImage) return;
@@ -110,9 +107,31 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
     setUploadedImage(null);
     setLatexInput("");
     setError("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  };
+
+  const handleFileSelect = (file: File) => {
+    if (file.size > 1024 * 1024) {
+      setError("File size must be less than 1MB");
+      return;
     }
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Only JPEG, JPG, and PNG files are allowed");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setUploadedImage(result);
+      setError("");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDropzoneClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -121,35 +140,64 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
         Upload or select an image in your design to recognize
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/jpg,image/png"
-        onChange={handleFileUpload}
-        style={{ display: "none" }}
-      />
-
       <div style={{ marginBottom: 8 }}>
-        <button
-          onClick={handleChooseFile}
+        <sp-dropzone
           style={{
-            padding: "6px 8px",
-            borderRadius: 4,
-            border: "1px solid #ccc",
-            background: "#fafafa",
-            cursor: "pointer",
             width: "100%",
+            minHeight: "60px",
+            borderRadius: "4px",
+            border: "2px dashed #ccc",
+            background: "#fafafa",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 4,
-            fontSize: 14,
+            cursor: "pointer",
+            fontSize: "14px",
             boxSizing: "border-box",
+            padding: "12px",
+          }}
+          onClick={handleDropzoneClick}
+          onDragOver={(e: any) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={(e: any) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const files = e.dataTransfer?.files;
+            if (files && files.length > 0) {
+              handleFileSelect(files[0]);
+            }
           }}
         >
-          <Upload size={16} />
-          Choose file
-        </button>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexDirection: "column",
+            }}
+          >
+            <Upload size={20} />
+            <span>Drop image here or click to browse</span>
+            <span style={{ fontSize: "12px", color: "#666" }}>
+              JPEG, JPG, PNG (max 1MB)
+            </span>
+          </div>
+        </sp-dropzone>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              handleFileSelect(file);
+            }
+          }}
+        />
       </div>
 
       {uploadedImage && (
@@ -181,48 +229,24 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
           </div>
 
           <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-            <button
-              onClick={handleRecognize}
-              disabled={isRecognizing}
-              style={{
-                flex: 1,
-                padding: "8px 12px",
-                borderRadius: 4,
-                border: "1px solid #ccc",
-                background: isRecognizing ? "#fafafa" : "#fff",
-                cursor: isRecognizing ? "not-allowed" : "pointer",
-                fontSize: 15,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-              }}
-            >
-              <Lightbulb size={16} />
-              {isRecognizing ? "Analyzing image..." : "Recognize"}
-            </button>
+            {isRecognizing ? (
+              <sp-button variant="primary" disabled style={{ flex: 1 }}>
+                Analyzing image...
+              </sp-button>
+            ) : (
+              <sp-button
+                variant="primary"
+                onClick={handleRecognize}
+                style={{ flex: 1 }}
+              >
+                Recognize
+              </sp-button>
+            )}
           </div>
 
-          <button
-            onClick={handleClearImage}
-            style={{
-              width: "100%",
-              padding: "6px 8px",
-              borderRadius: 4,
-              border: "1px solid #ccc",
-              background: "#fafafa",
-              cursor: "pointer",
-              fontSize: 14,
-              color: "#666",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 4,
-            }}
-          >
-            <X size={14} />
+          <sp-button onClick={handleClearImage} style={{ width: "100%" }}>
             Clear image
-          </button>
+          </sp-button>
         </div>
       )}
 

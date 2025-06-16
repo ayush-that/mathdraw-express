@@ -3,6 +3,35 @@ import katex from "katex";
 import "katex/dist/katex.min.css";
 import html2canvas from "html2canvas";
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
+import "@spectrum-web-components/textfield/sp-textfield.js";
+import "@spectrum-web-components/button/sp-button.js";
+import { Textfield } from "@spectrum-web-components/textfield";
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "sp-textfield": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        multiline?: boolean;
+        grows?: boolean;
+        value?: string;
+        placeholder?: string;
+        onInput?: (event: any) => void;
+      };
+      "sp-button": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        variant?: string;
+        size?: string;
+        disabled?: boolean;
+        onClick?: (event: any) => void;
+      };
+    }
+  }
+}
 
 interface LaTeXEditorProps {
   latexInput: string;
@@ -166,20 +195,21 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
       <div style={{ fontWeight: 600, marginBottom: 4, fontSize: 15 }}>
         LaTeX
       </div>
-      <textarea
+      <sp-textfield
+        multiline
+        grows
         value={latexInput}
-        onChange={(e) => setLatexInput(e.target.value)}
-        style={{
-          width: "100%",
-          minHeight: 35,
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          padding: 4,
-          resize: "vertical",
-          fontFamily: "monospace",
-          fontSize: 13,
-          boxSizing: "border-box",
-        }}
+        placeholder="Enter LaTeX code here..."
+        style={
+          {
+            width: "100%",
+            fontFamily: "monospace",
+            "--spectrum-textfield-placeholder-color": "#999",
+            "--spectrum-textfield-placeholder-color-hover": "#999",
+            "--spectrum-textfield-placeholder-color-focus": "#999",
+          } as React.CSSProperties
+        }
+        onInput={(e: any) => setLatexInput(e.target.value)}
       />
 
       <div
@@ -235,25 +265,19 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
         Check the results closely to make sure they're accurate.
       </div>
 
-      <button
-        onClick={addToDesign}
-        disabled={!previewHtml || isAddingToDesign || !addOnUISdk}
-        style={{
-          width: "100%",
-          padding: "8px 12px",
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          background: previewHtml && !isAddingToDesign ? "#e6e6fa" : "#fafafa",
-          color: previewHtml && !isAddingToDesign ? "#6b46c1" : "#999",
-          fontWeight: 600,
-          fontSize: 15,
-          cursor: previewHtml && !isAddingToDesign ? "pointer" : "not-allowed",
-          transition: "all 0.2s ease",
-          boxSizing: "border-box",
-        }}
-      >
-        {isAddingToDesign ? "Adding..." : "Add to design"}
-      </button>
+      {!previewHtml || isAddingToDesign || !addOnUISdk ? (
+        <sp-button variant="primary" disabled style={{ width: "100%" }}>
+          {isAddingToDesign ? "Adding..." : "Add to design"}
+        </sp-button>
+      ) : (
+        <sp-button
+          variant="primary"
+          onClick={addToDesign}
+          style={{ width: "100%" }}
+        >
+          Add to design
+        </sp-button>
+      )}
     </>
   );
 };

@@ -5,6 +5,23 @@ import { MATH_RECOGNITION_PROMPT } from "../prompts";
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 import DrawingCanvas from "./DrawingCanvas";
 import LaTeXEditor from "./LaTeXEditor";
+import "@spectrum-web-components/button/sp-button.js";
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "sp-button": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        variant?: string;
+        size?: string;
+        disabled?: boolean;
+        onClick?: (event: any) => void;
+      };
+    }
+  }
+}
 
 interface WriteTabProps {
   addOnUISdk?: AddOnSDKAPI;
@@ -89,28 +106,23 @@ const WriteTab: React.FC<WriteTabProps> = ({ addOnUISdk }) => {
         height={140}
       />
 
-      <button
-        onClick={handleRecognize}
-        disabled={isRecognizing || !canvasImage}
-        style={{
-          width: "100%",
-          marginBottom: 10,
-          padding: "6px 0",
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          background: isRecognizing || !canvasImage ? "#fafafa" : "#fff",
-          cursor: isRecognizing || !canvasImage ? "not-allowed" : "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 4,
-          fontSize: 13,
-          boxSizing: "border-box",
-        }}
-      >
-        <Lightbulb size={16} />
-        {isRecognizing ? "Analyzing drawing..." : "Recognize"}
-      </button>
+      {isRecognizing || !canvasImage ? (
+        <sp-button
+          variant="primary"
+          disabled
+          style={{ width: "100%", marginBottom: 10 }}
+        >
+          {isRecognizing ? "Analyzing drawing..." : "Recognize"}
+        </sp-button>
+      ) : (
+        <sp-button
+          variant="primary"
+          onClick={handleRecognize}
+          style={{ width: "100%", marginBottom: 10 }}
+        >
+          Recognize
+        </sp-button>
+      )}
 
       <LaTeXEditor
         latexInput={latexInput}

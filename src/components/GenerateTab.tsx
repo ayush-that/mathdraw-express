@@ -4,6 +4,34 @@ import { Sparkles, Lightbulb } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MATH_GENERATION_PROMPT } from "../prompts";
 import LaTeXEditor from "./LaTeXEditor";
+import "@spectrum-web-components/textfield/sp-textfield.js";
+import "@spectrum-web-components/button/sp-button.js";
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "sp-textfield": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        multiline?: boolean;
+        grows?: boolean;
+        value?: string;
+        placeholder?: string;
+        onInput?: (event: any) => void;
+      };
+      "sp-button": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        variant?: string;
+        size?: string;
+        disabled?: boolean;
+        onClick?: (event: any) => void;
+      };
+    }
+  }
+}
 
 interface GenerateTabProps {
   addOnUISdk?: AddOnSDKAPI;
@@ -87,72 +115,45 @@ const GenerateTab: React.FC<GenerateTabProps> = ({ addOnUISdk }) => {
       </div>
 
       <div style={{ fontWeight: 600, marginBottom: 4, fontSize: 15 }}>
-        Formula idea
+        Formula Idea
       </div>
 
-      <textarea
+      <sp-textfield
+        multiline
+        grows
         value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="e.g. Quadratic formula, Pythagorean theorem, or Integral of sin(x)"
+        placeholder="e.g. Integral of sin(x)"
         style={{
           width: "100%",
-          minHeight: 60,
-          padding: 8,
-          borderRadius: 4,
-          border: "1px solid #ccc",
           marginBottom: 8,
-          boxSizing: "border-box",
-          fontSize: 14,
-          resize: "vertical",
-          fontFamily: "inherit",
         }}
+        onInput={(e: any) => setPrompt(e.target.value)}
       />
 
-      <button
+      <sp-button
         onClick={handleTryExample}
-        style={{
-          width: "100%",
-          marginBottom: 8,
-          padding: "6px 0",
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          background: "#fafafa",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 4,
-          fontSize: 13,
-          boxSizing: "border-box",
-        }}
+        style={{ width: "100%", marginBottom: 8 }}
       >
-        <Lightbulb size={14} />
         Try an example
-      </button>
+      </sp-button>
 
-      <button
-        onClick={handleGenerate}
-        disabled={isGenerating || !prompt.trim()}
-        style={{
-          width: "100%",
-          marginBottom: 14,
-          padding: "8px 0",
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          background: isGenerating || !prompt.trim() ? "#fafafa" : "#fff",
-          cursor: isGenerating || !prompt.trim() ? "not-allowed" : "pointer",
-          fontSize: 14,
-          boxSizing: "border-box",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 4,
-          fontWeight: 500,
-        }}
-      >
-        <Sparkles size={16} />
-        {isGenerating ? "Generating LaTeX..." : "Generate LaTeX"}
-      </button>
+      {isGenerating || !prompt.trim() ? (
+        <sp-button
+          variant="primary"
+          disabled
+          style={{ width: "100%", marginBottom: 14 }}
+        >
+          {isGenerating ? "Generating LaTeX..." : "Generate LaTeX"}
+        </sp-button>
+      ) : (
+        <sp-button
+          variant="primary"
+          onClick={handleGenerate}
+          style={{ width: "100%", marginBottom: 14 }}
+        >
+          Generate LaTeX
+        </sp-button>
+      )}
 
       <LaTeXEditor
         latexInput={latexOutput}

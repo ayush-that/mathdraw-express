@@ -1,4 +1,21 @@
 import React, { useRef, useEffect, useState } from "react";
+import "@spectrum-web-components/button/sp-button.js";
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "sp-button": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        variant?: string;
+        size?: string;
+        disabled?: boolean;
+        onClick?: (event: any) => void;
+      };
+    }
+  }
+}
 
 interface DrawingCanvasProps {
   onCanvasChange: (imageData: string | null) => void;
@@ -153,22 +170,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
           display: "block",
         }}
       />
-      <button
-        onClick={clearCanvas}
-        style={{
-          width: "100%",
-          marginTop: 6,
-          padding: "8px 0",
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          background: "#fafafa",
-          cursor: "pointer",
-          fontSize: 12,
-          fontWeight: "bold",
-        }}
-      >
+      <sp-button onClick={clearCanvas} style={{ width: "100%", marginTop: 6 }}>
         Clear canvas
-      </button>
+      </sp-button>
     </div>
   );
 };
