@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
-import katex from "katex";
-import "katex/dist/katex.min.css";
-import html2canvas from "html2canvas";
+import React, { useState, useRef } from "react";
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 import { Upload, Lightbulb, X } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MATH_RECOGNITION_PROMPT } from "../prompts";
+import LaTeXEditor from "./LaTeXEditor";
 
 interface ImageTabProps {
   addOnUISdk?: AddOnSDKAPI;
@@ -13,33 +11,10 @@ interface ImageTabProps {
 
 const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
   const [latexInput, setLatexInput] = useState("");
-  const [previewHtml, setPreviewHtml] = useState("");
   const [error, setError] = useState("");
-  const [isAddingToDesign, setIsAddingToDesign] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
-  const previewRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (latexInput.trim()) {
-      try {
-        const html = katex.renderToString(latexInput, {
-          throwOnError: false,
-          displayMode: true,
-          output: "html",
-        });
-
-        setPreviewHtml(html);
-        setError("");
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      setPreviewHtml("");
-      setError("");
-    }
-  }, [latexInput]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -109,8 +84,6 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
       const response = await result.response;
       const text = response.text();
 
-      console.log("Gemini API response:", text);
-
       if (!text || text.trim().length === 0) {
         throw new Error("Empty response from Gemini API");
       }
@@ -122,16 +95,12 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
         .trim();
 
       if (!cleanLatex) {
-        throw new Error("No valid LaTeX code extracted from the response");
+        throw new Error("Invalid LaTeX code");
       }
 
       setLatexInput(cleanLatex);
-      console.log("Recognized LaTeX:", cleanLatex);
     } catch (err) {
-      console.error("Recognition error:", err);
-      setError(
-        `Failed to recognize mathematical expression: ${err.message || err}`
-      );
+      setError(`${err}`);
     } finally {
       setIsRecognizing(false);
     }
@@ -140,70 +109,9 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
   const handleClearImage = () => {
     setUploadedImage(null);
     setLatexInput("");
-    setPreviewHtml("");
     setError("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
-    }
-  };
-
-  const addToDesign = async () => {
-    if (!addOnUISdk || !previewHtml || !previewRef.current) return;
-
-    setIsAddingToDesign(true);
-    setError("");
-
-    try {
-      console.log("Starting add to design process...");
-      console.log("LaTeX Input:", latexInput);
-
-      const canvas = await html2canvas(previewRef.current, {
-        backgroundColor: null,
-        scale: 10,
-        useCORS: true,
-        allowTaint: false,
-        width: previewRef.current.offsetWidth,
-        height: previewRef.current.offsetHeight,
-        scrollX: 0,
-        scrollY: 0,
-      });
-
-      console.log(
-        "Canvas created with dimensions:",
-        canvas.width,
-        "x",
-        canvas.height
-      );
-
-      const pngBlob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error("Failed to create PNG blob"));
-            }
-          },
-          "image/png",
-          1.0
-        );
-      });
-
-      console.log("Created high-quality PNG Blob:", pngBlob);
-
-      await addOnUISdk.app.document.addImage(pngBlob, {
-        title: `LaTeX: ${latexInput.substring(0, 50)}${
-          latexInput.length > 50 ? "..." : ""
-        }`,
-        author: "MathDraw Add-on",
-      });
-
-      console.log("Successfully added rendered LaTeX to design!");
-    } catch (error) {
-      console.error("Failed to add LaTeX to design:", error);
-      setError(`Failed to add to design: ${error.message || error}`);
-    } finally {
-      setIsAddingToDesign(false);
     }
   };
 
@@ -323,110 +231,13 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
         transparent backgrounds.
       </div>
 
-      {error && (
-        <div
-          style={{
-            color: "#d32f2f",
-            fontSize: 10,
-            marginBottom: 8,
-            padding: 4,
-            background: "#ffebee",
-            borderRadius: 4,
-            border: "1px solid #ffcdd2",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      <div style={{ fontWeight: 600, marginBottom: 3, fontSize: 12 }}>
-        LaTeX
-      </div>
-      <textarea
-        value={latexInput}
-        onChange={(e) => setLatexInput(e.target.value)}
-        style={{
-          width: "100%",
-          minHeight: 35,
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          padding: 4,
-          resize: "vertical",
-          fontFamily: "monospace",
-          fontSize: 10,
-          boxSizing: "border-box",
-        }}
+      <LaTeXEditor
+        latexInput={latexInput}
+        setLatexInput={setLatexInput}
+        addOnUISdk={addOnUISdk}
+        error={error}
+        setError={setError}
       />
-
-      <div
-        style={{
-          fontWeight: 600,
-          marginTop: 12,
-          marginBottom: 3,
-          fontSize: 12,
-        }}
-      >
-        Preview
-      </div>
-      <div
-        ref={previewRef}
-        style={{
-          width: "100%",
-          minHeight: 60,
-          maxHeight: 120,
-          borderRadius: 4,
-          padding: 8,
-          fontSize: 14,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxSizing: "border-box",
-          overflow: "auto",
-          wordWrap: "break-word",
-          overflowWrap: "break-word",
-        }}
-      >
-        {previewHtml ? (
-          <div
-            dangerouslySetInnerHTML={{ __html: previewHtml }}
-            style={{
-              maxWidth: "100%",
-              overflow: "hidden",
-              textAlign: "center",
-            }}
-          />
-        ) : (
-          <div style={{ color: "#666", fontSize: 10, fontStyle: "italic" }}>
-            Enter LaTeX to see preview
-          </div>
-        )}
-      </div>
-
-      <div
-        style={{ fontSize: 10, color: "#666", marginTop: 4, marginBottom: 12 }}
-      >
-        Check the results closely to make sure they're accurate.
-      </div>
-
-      <button
-        onClick={addToDesign}
-        disabled={!previewHtml || isAddingToDesign || !addOnUISdk}
-        style={{
-          width: "100%",
-          padding: "8px 12px",
-          borderRadius: 4,
-          border: "1px solid #ccc",
-          background: previewHtml && !isAddingToDesign ? "#e6e6fa" : "#fafafa",
-          color: previewHtml && !isAddingToDesign ? "#6b46c1" : "#999",
-          fontWeight: 600,
-          fontSize: 12,
-          cursor: previewHtml && !isAddingToDesign ? "pointer" : "not-allowed",
-          transition: "all 0.2s ease",
-          boxSizing: "border-box",
-        }}
-      >
-        {isAddingToDesign ? "Adding..." : "Add to design"}
-      </button>
     </div>
   );
 };

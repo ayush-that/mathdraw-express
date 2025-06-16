@@ -29,7 +29,7 @@ const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
       case 2:
         return <ExportTab />;
       case 3:
-        return <WriteTab />;
+        return <WriteTab addOnUISdk={addOnUISdk} />;
       default:
         return <ImageTab addOnUISdk={addOnUISdk} />;
     }
@@ -42,7 +42,7 @@ const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
         style={{ minWidth: 280, maxWidth: 320, padding: 12 }}
       >
         <div style={{ marginBottom: 8 }}>
-          <span style={{ fontWeight: 500, fontSize: 13 }}>Input type</span>
+          <span style={{ fontWeight: 700, fontSize: 13 }}>Input type</span>
         </div>
 
         <div
