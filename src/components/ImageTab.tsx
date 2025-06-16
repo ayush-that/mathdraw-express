@@ -7,7 +7,6 @@ import LaTeXEditor from "./LaTeXEditor";
 import "@spectrum-web-components/dropzone/sp-dropzone.js";
 import "@spectrum-web-components/button/sp-button.js";
 
-// Declare the custom element for TypeScript
 declare global {
   namespace JSX {
     interface IntrinsicElements {

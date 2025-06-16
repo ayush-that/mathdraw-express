@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Lightbulb } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MATH_RECOGNITION_PROMPT } from "../prompts";
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";

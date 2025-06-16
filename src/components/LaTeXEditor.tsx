@@ -5,7 +5,6 @@ import html2canvas from "html2canvas";
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 import "@spectrum-web-components/textfield/sp-textfield.js";
 import "@spectrum-web-components/button/sp-button.js";
-import { Textfield } from "@spectrum-web-components/textfield";
 
 declare global {
   namespace JSX {

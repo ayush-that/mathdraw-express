@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
-import { Sparkles, Lightbulb } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MATH_GENERATION_PROMPT } from "../prompts";
 import LaTeXEditor from "./LaTeXEditor";
