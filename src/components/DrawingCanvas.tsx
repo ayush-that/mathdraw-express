@@ -14,7 +14,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -37,7 +37,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
-    // Set a white background for better contrast
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#000000";
@@ -106,11 +105,10 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       if (ctx) {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const hasContent = imageData.data.some(
-          (channel, index) => index % 4 === 3 && channel > 0
+          (channel, index) => index % 4 === 3 && channel > 0,
         );
 
         if (hasContent) {
-          // Create a higher quality image for better recognition
           const canvasDataURL = canvas.toDataURL("image/png", 1.0);
           onCanvasChange(canvasDataURL);
         } else {
@@ -127,7 +125,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Clear and reset white background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);

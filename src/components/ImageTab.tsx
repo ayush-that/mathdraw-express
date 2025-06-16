@@ -54,7 +54,7 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
       const apiKey = process.env.VITE_GEMINI_API_KEY;
       if (!apiKey) {
         throw new Error(
-          "Gemini API key not found. Please check your environment variables."
+          "Gemini API key not found. Please check your environment variables.",
         );
       }
 
@@ -117,7 +117,7 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
 
   return (
     <div style={{ width: "100%" }}>
-      <div style={{ marginBottom: 8, fontSize: 12 }}>
+      <div style={{ marginBottom: 10, fontSize: 15 }}>
         Upload or select an image in your design to recognize
       </div>
 
@@ -129,7 +129,7 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
         style={{ display: "none" }}
       />
 
-      <div style={{ marginBottom: 6 }}>
+      <div style={{ marginBottom: 8 }}>
         <button
           onClick={handleChooseFile}
           style={{
@@ -143,7 +143,7 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
             alignItems: "center",
             justifyContent: "center",
             gap: 4,
-            fontSize: 11,
+            fontSize: 14,
             boxSizing: "border-box",
           }}
         >
@@ -191,7 +191,7 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
                 border: "1px solid #ccc",
                 background: isRecognizing ? "#fafafa" : "#fff",
                 cursor: isRecognizing ? "not-allowed" : "pointer",
-                fontSize: 12,
+                fontSize: 15,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -212,7 +212,7 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
               border: "1px solid #ccc",
               background: "#fafafa",
               cursor: "pointer",
-              fontSize: 11,
+              fontSize: 14,
               color: "#666",
               display: "flex",
               alignItems: "center",
@@ -226,7 +226,7 @@ const ImageTab: React.FC<ImageTabProps> = ({ addOnUISdk }) => {
         </div>
       )}
 
-      <div style={{ fontSize: 10, color: "#666", marginBottom: 8 }}>
+      <div style={{ fontSize: 13, color: "#666", marginBottom: 10 }}>
         Max file size: 1MB. Acceptable formats: jpeg, jpg, png. Don't use
         transparent backgrounds.
       </div>

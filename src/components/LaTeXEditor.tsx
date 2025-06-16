@@ -21,12 +21,22 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
 }) => {
   const [previewHtml, setPreviewHtml] = useState("");
   const [isAddingToDesign, setIsAddingToDesign] = useState(false);
+  const [previewScale, setPreviewScale] = useState(1);
   const previewRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (latexInput.trim()) {
       try {
-        const html = katex.renderToString(latexInput, {
+        const hasLatexCommands = /\\[a-zA-Z]+|[\{\}\[\]_^]/.test(latexInput);
+
+        let processedInput = latexInput;
+
+        if (!hasLatexCommands) {
+          processedInput = `\\text{${latexInput}}`;
+        }
+
+        const html = katex.renderToString(processedInput, {
           throwOnError: false,
           displayMode: true,
           output: "html",
@@ -35,7 +45,7 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
         setPreviewHtml(html);
         if (setError) setError("");
       } catch (err) {
-        console.error(err);
+        if (setError) setError(`LaTeX rendering error: ${err}`);
       }
     } else {
       setPreviewHtml("");
@@ -43,23 +53,70 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
     }
   }, [latexInput, setError]);
 
+  useEffect(() => {
+    if (previewHtml && previewRef.current && contentRef.current) {
+      const calculateScale = () => {
+        const container = previewRef.current;
+        const content = contentRef.current;
+
+        if (!container || !content) return;
+
+        content.style.transform = "scale(1)";
+
+        const containerWidth = container.clientWidth - 16;
+        const containerHeight = container.clientHeight - 16;
+        const contentWidth = content.scrollWidth;
+        const contentHeight = content.scrollHeight;
+
+        const scaleX = containerWidth / contentWidth;
+        const scaleY = containerHeight / contentHeight;
+        const scale = Math.min(scaleX, scaleY, 1);
+
+        setPreviewScale(scale);
+      };
+
+      const timer = setTimeout(calculateScale, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [previewHtml]);
+
   const addToDesign = async () => {
-    if (!addOnUISdk || !previewHtml || !previewRef.current) return;
+    if (!addOnUISdk || !previewHtml) return;
 
     setIsAddingToDesign(true);
     if (setError) setError("");
 
     try {
-      const canvas = await html2canvas(previewRef.current, {
+      const tempContainer = document.createElement("div");
+      tempContainer.style.position = "absolute";
+      tempContainer.style.left = "-9999px";
+      tempContainer.style.top = "-9999px";
+      tempContainer.style.padding = "8px";
+      tempContainer.style.display = "inline-block";
+      tempContainer.style.fontSize = "14px";
+
+      const contentDiv = document.createElement("div");
+      contentDiv.innerHTML = previewHtml;
+      contentDiv.style.textAlign = "center";
+      contentDiv.style.lineHeight = "1.4";
+      contentDiv.style.display = "block";
+
+      tempContainer.appendChild(contentDiv);
+      document.body.appendChild(tempContainer);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const canvas = await html2canvas(tempContainer, {
         backgroundColor: null,
-        scale: 10,
+        scale: 8,
         useCORS: true,
         allowTaint: false,
-        width: previewRef.current.offsetWidth,
-        height: previewRef.current.offsetHeight,
         scrollX: 0,
         scrollY: 0,
+        logging: false,
       });
+
+      document.body.removeChild(tempContainer);
 
       const pngBlob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
@@ -71,7 +128,7 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
             }
           },
           "image/png",
-          1.0
+          1.0,
         );
       });
 
@@ -94,8 +151,8 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
         <div
           style={{
             color: "#d32f2f",
-            fontSize: 10,
-            marginBottom: 8,
+            fontSize: 13,
+            marginBottom: 10,
             padding: 4,
             background: "#ffebee",
             borderRadius: 4,
@@ -106,7 +163,7 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
         </div>
       )}
 
-      <div style={{ fontWeight: 600, marginBottom: 3, fontSize: 12 }}>
+      <div style={{ fontWeight: 600, marginBottom: 4, fontSize: 15 }}>
         LaTeX
       </div>
       <textarea
@@ -120,7 +177,7 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
           padding: 4,
           resize: "vertical",
           fontFamily: "monospace",
-          fontSize: 10,
+          fontSize: 13,
           boxSizing: "border-box",
         }}
       />
@@ -128,9 +185,9 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
       <div
         style={{
           fontWeight: 600,
-          marginTop: 12,
-          marginBottom: 3,
-          fontSize: 12,
+          marginTop: 14,
+          marginBottom: 4,
+          fontSize: 15,
         }}
       >
         Preview
@@ -140,37 +197,40 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
         style={{
           width: "100%",
           minHeight: 60,
-          maxHeight: 120,
+          maxHeight: 200,
           borderRadius: 4,
+          border: "1px solid #e0e0e0",
           padding: 8,
           fontSize: 14,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           boxSizing: "border-box",
-          overflow: "auto",
+          overflow: "hidden",
+          backgroundColor: "#fafafa",
         }}
       >
         {previewHtml ? (
           <div
+            ref={contentRef}
             dangerouslySetInnerHTML={{ __html: previewHtml }}
             style={{
-              maxWidth: "100%",
               textAlign: "center",
-              wordBreak: "break-all",
-              overflowWrap: "anywhere",
-              lineHeight: "1.2",
+              lineHeight: "1.4",
+              transform: `scale(${previewScale})`,
+              transformOrigin: "center",
+              transition: "transform 0.2s ease",
             }}
           />
         ) : (
-          <div style={{ color: "#666", fontSize: 10, fontStyle: "italic" }}>
+          <div style={{ color: "#666", fontSize: 13, fontStyle: "italic" }}>
             Enter LaTeX to see preview
           </div>
         )}
       </div>
 
       <div
-        style={{ fontSize: 10, color: "#666", marginTop: 4, marginBottom: 12 }}
+        style={{ fontSize: 13, color: "#666", marginTop: 6, marginBottom: 14 }}
       >
         Check the results closely to make sure they're accurate.
       </div>
@@ -186,7 +246,7 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
           background: previewHtml && !isAddingToDesign ? "#e6e6fa" : "#fafafa",
           color: previewHtml && !isAddingToDesign ? "#6b46c1" : "#999",
           fontWeight: 600,
-          fontSize: 12,
+          fontSize: 15,
           cursor: previewHtml && !isAddingToDesign ? "pointer" : "not-allowed",
           transition: "all 0.2s ease",
           boxSizing: "border-box",

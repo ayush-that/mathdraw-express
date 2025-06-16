@@ -8,10 +8,9 @@ import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk
 
 import ImageTab from "./ImageTab";
 import GenerateTab from "./GenerateTab";
-import ExportTab from "./ExportTab";
 import WriteTab from "./WriteTab";
 
-const tabLabels = ["Image", "Generate", "Export", "Write"];
+const tabLabels = ["Image", "Generate", "Write"];
 
 const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
   const [selectedTab, setSelectedTab] = useState(0);
@@ -25,10 +24,8 @@ const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
       case 0:
         return <ImageTab addOnUISdk={addOnUISdk} />;
       case 1:
-        return <GenerateTab />;
+        return <GenerateTab addOnUISdk={addOnUISdk} />;
       case 2:
-        return <ExportTab />;
-      case 3:
         return <WriteTab addOnUISdk={addOnUISdk} />;
       default:
         return <ImageTab addOnUISdk={addOnUISdk} />;
@@ -41,16 +38,12 @@ const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
         className="container"
         style={{ minWidth: 280, maxWidth: 320, padding: 12 }}
       >
-        <div style={{ marginBottom: 8 }}>
-          <span style={{ fontWeight: 700, fontSize: 13 }}>Input type</span>
-        </div>
-
         <div
           style={{
             display: "flex",
             borderRadius: 6,
             border: "1px solid #ccc",
-            marginBottom: 12,
+            marginBottom: 14,
             overflow: "hidden",
             width: "100%",
           }}
@@ -67,7 +60,7 @@ const MathDraw = ({ addOnUISdk }: { addOnUISdk: AddOnSDKAPI }) => {
                 color: selectedTab === idx ? "#6b46c1" : "#666",
                 fontWeight: selectedTab === idx ? 600 : 400,
                 cursor: "pointer",
-                fontSize: 10,
+                fontSize: 14,
                 transition: "all 0.2s ease",
                 minWidth: 0,
               }}
