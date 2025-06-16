@@ -17,38 +17,26 @@ const WriteTab: React.FC<WriteTabProps> = ({ addOnUISdk }) => {
   const [canvasImage, setCanvasImage] = useState<string | null>(null);
 
   const handleCanvasChange = (imageData: string | null) => {
-    console.log(
-      "🎨 Canvas changed, imageData:",
-      imageData ? `${imageData.length} characters` : "null"
-    );
     setCanvasImage(imageData);
   };
 
   const handleRecognize = async () => {
-    console.log("🔍 Recognize button clicked");
-    console.log("🖼️ Canvas image available:", !!canvasImage);
-
     if (!canvasImage) {
-      console.log("❌ No canvas image available");
       setError("Please draw something on the canvas first");
       return;
     }
 
-    console.log("🚀 Starting Gemini recognition...");
     setIsRecognizing(true);
     setError("");
 
     try {
       const apiKey = process.env.VITE_GEMINI_API_KEY;
-      console.log("🔑 API key available:", !!apiKey);
 
       if (!apiKey) {
         throw new Error(
           "Gemini API key not found. Please check your environment variables."
         );
       }
-
-      console.log("🤖 Creating Gemini AI instance...");
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({
         model: "gemini-2.0-flash-lite",
@@ -69,6 +57,20 @@ const WriteTab: React.FC<WriteTabProps> = ({ addOnUISdk }) => {
         base64Data.length
       );
 
+      // Create a temporary image element to verify the canvas data
+      const tempImg = new Image();
+      tempImg.onload = () => {
+        console.log("✅ Canvas image is valid:", {
+          width: tempImg.width,
+          height: tempImg.height,
+          src: canvasImage.substring(0, 50) + "...",
+        });
+      };
+      tempImg.onerror = () => {
+        console.log("❌ Canvas image is invalid or corrupted");
+      };
+      tempImg.src = canvasImage;
+
       const imagePart = {
         inlineData: {
           data: base64Data,
@@ -77,58 +79,78 @@ const WriteTab: React.FC<WriteTabProps> = ({ addOnUISdk }) => {
       };
 
       console.log("📤 Sending request to Gemini...");
+      console.log("🔍 Request payload:", {
+        prompt: MATH_RECOGNITION_PROMPT.substring(0, 100) + "...",
+        imageSize: base64Data.length,
+        mimeType: mimeType,
+      });
+
       const result = await model.generateContent([
         MATH_RECOGNITION_PROMPT,
         imagePart,
       ]);
-      const response = await result.response;
-      const text = response.text();
 
+      console.log("📦 Raw result object:", result);
+
+      // Check if there are any safety or other issues
+      if (result.response.promptFeedback) {
+        console.log("⚠️ Prompt feedback:", result.response.promptFeedback);
+      }
+
+      const response = await result.response;
+      console.log("📦 Response object:", response);
+
+      // Check for safety ratings or blocks
+      if (response.candidates && response.candidates[0]) {
+        const candidate = response.candidates[0];
+        console.log("🔍 Candidate details:", {
+          finishReason: candidate.finishReason,
+          safetyRatings: candidate.safetyRatings,
+          content: candidate.content,
+        });
+      }
+
+      const text = response.text();
       console.log("📥 Gemini API response:", text);
       console.log("📝 Raw response length:", text.length);
+      console.log("📝 Response type:", typeof text);
 
       if (!text || text.trim().length === 0) {
+        console.log("❌ Empty response details:", {
+          text: text,
+          textLength: text?.length,
+          trimmedLength: text?.trim()?.length,
+          responseObject: response,
+        });
         throw new Error("Empty response from Gemini API");
       }
 
-      // More flexible LaTeX cleaning
-      let cleanLatex = text.trim();
-
-      // Remove markdown code blocks
-      cleanLatex = cleanLatex.replace(/```latex\s*/gi, "");
-      cleanLatex = cleanLatex.replace(/```\s*/g, "");
-
-      // Remove dollar signs from start and end
-      cleanLatex = cleanLatex.replace(/^\$+/, "").replace(/\$+$/, "");
-
-      // Remove common prefixes that Gemini might add
-      cleanLatex = cleanLatex.replace(
-        /^(the\s+)?(latex\s+)?(code\s+)?(is\s*:?\s*)/gi,
-        ""
-      );
-      cleanLatex = cleanLatex.replace(
-        /^(here\s+is\s+the\s+latex\s*:?\s*)/gi,
-        ""
-      );
-
-      // Clean up whitespace
-      cleanLatex = cleanLatex.trim();
+      // Simple LaTeX cleaning (matching ImageTab logic)
+      const cleanLatex = text
+        .replace(/```latex/g, "")
+        .replace(/```/g, "")
+        .replace(/^\$+|\$+$/g, "")
+        .trim();
 
       console.log("✨ Cleaned LaTeX:", cleanLatex);
       console.log("📏 Cleaned LaTeX length:", cleanLatex.length);
 
-      if (!cleanLatex || cleanLatex.length === 0) {
+      if (!cleanLatex) {
         console.log(
           "❌ No content after cleaning. Original response was:",
           text
         );
-        throw new Error(
-          `No valid LaTeX code extracted from the response. Original response: "${text}"`
-        );
+        throw new Error("Invalid LaTeX code");
       }
 
+      console.log("🔄 Setting LaTeX input to:", cleanLatex);
       setLatexInput(cleanLatex);
       console.log("✅ Recognition completed successfully");
+
+      // Verify the state was updated
+      setTimeout(() => {
+        console.log("🔍 Current latexInput state:", latexInput);
+      }, 100);
     } catch (err) {
       console.error("❌ Recognition error:", err);
       setError(
@@ -148,7 +170,7 @@ const WriteTab: React.FC<WriteTabProps> = ({ addOnUISdk }) => {
       <DrawingCanvas
         onCanvasChange={handleCanvasChange}
         width={280}
-        height={120}
+        height={140}
       />
 
       <button

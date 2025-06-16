@@ -149,8 +149,6 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
           justifyContent: "center",
           boxSizing: "border-box",
           overflow: "auto",
-          wordWrap: "break-word",
-          overflowWrap: "break-word",
         }}
       >
         {previewHtml ? (
@@ -158,8 +156,10 @@ const LaTeXEditor: React.FC<LaTeXEditorProps> = ({
             dangerouslySetInnerHTML={{ __html: previewHtml }}
             style={{
               maxWidth: "100%",
-              overflow: "hidden",
               textAlign: "center",
+              wordBreak: "break-all",
+              overflowWrap: "anywhere",
+              lineHeight: "1.2",
             }}
           />
         ) : (

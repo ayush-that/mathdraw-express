@@ -33,9 +33,14 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
     ctx.strokeStyle = "#000000";
     ctx.fillStyle = "#000000";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
+
+    // Set a white background for better contrast
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000000";
   }, [width, height]);
 
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -64,7 +69,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     setLastPoint(pos);
 
     ctx.fillStyle = "#000000";
-    ctx.fillRect(pos.x - 2, pos.y - 2, 4, 4);
+    ctx.fillRect(pos.x - 3, pos.y - 3, 6, 6);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -79,7 +84,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const pos = getMousePos(e);
 
     ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(lastPoint.x, lastPoint.y);
@@ -105,7 +110,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         );
 
         if (hasContent) {
-          const canvasDataURL = canvas.toDataURL("image/png");
+          // Create a higher quality image for better recognition
+          const canvasDataURL = canvas.toDataURL("image/png", 1.0);
           onCanvasChange(canvasDataURL);
         } else {
           onCanvasChange(null);
@@ -121,7 +127,12 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Clear and reset white background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000000";
+
     onCanvasChange(null);
   };
 
